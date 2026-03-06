@@ -1,140 +1,76 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
-import "./App.css";
+import { useState, useEffect, useCallback } from 'react';
+import Login from './components/Auth/Login';
+import Register from './components/Auth/Register';
+import ForgotPassword from './components/Auth/ForgotPassword';
+import Dashboard from './components/Dashboard/Dashboard';
+import authService from './services/authService';
+import './App.css';
 
+/**
+ * Componente raíz de la aplicación BRIAROS POS.
+ * Controla la navegación entre vistas de autenticación y el dashboard.
+ */
 function App() {
+  // Vista activa: 'login' | 'register' | 'forgot' | 'dashboard'
+  const [currentView, setCurrentView] = useState('login');
+  const [username, setUsername] = useState('');
 
-  const [isLogin, setIsLogin] = useState(true);
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loggedUser, setLoggedUser] = useState("");
-
+  // Verificar si hay sesión activa al cargar la app
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const savedUser = localStorage.getItem("username");
-
-    if (token) {
-      setIsAuthenticated(true);
-      setLoggedUser(savedUser);
+    if (authService.isAuthenticated()) {
+      setUsername(authService.getUsername());
+      setCurrentView('dashboard');
     }
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // ── Handlers de navegación ──
+  const handleLogin = useCallback((user) => {
+    setUsername(user);
+    setCurrentView('dashboard');
+  }, []);
 
-    try {
-      if (isLogin) {
-        const res = await axios.post(
-          "http://127.0.0.1:8000/api/login/",
-          { username, password }
+  const handleLogout = useCallback(() => {
+    authService.logout();
+    setUsername('');
+    setCurrentView('login');
+  }, []);
+
+  const switchToLogin = useCallback(() => setCurrentView('login'), []);
+  const switchToRegister = useCallback(() => setCurrentView('register'), []);
+  const switchToForgot = useCallback(() => setCurrentView('forgot'), []);
+
+  // ── Render según la vista activa ──
+  const renderView = () => {
+    switch (currentView) {
+      case 'login':
+        return (
+          <Login
+            onLogin={handleLogin}
+            onSwitchToRegister={switchToRegister}
+            onSwitchToForgot={switchToForgot}
+          />
         );
-
-        localStorage.setItem("token", res.data.access);
-        localStorage.setItem("username", username);
-
-        setLoggedUser(username);
-        setIsAuthenticated(true);
-        setMessage("");
-      } else {
-        await axios.post(
-          "http://127.0.0.1:8000/api/register/",
-          { username, email, password }
+      case 'register':
+        return (
+          <Register onSwitchToLogin={switchToLogin} />
         );
-
-        setMessage("Usuario registrado correctamente");
-
-        // Volver automáticamente al login después de .5 segundos
-        setTimeout(() => {
-          setIsLogin(true);
-          setMessage("");
-        }, 500);
-      }
-
-    } catch (error) {
-      setMessage("Error: credenciales inválidas ");
+      case 'forgot':
+        return (
+          <ForgotPassword onSwitchToLogin={switchToLogin} />
+        );
+      case 'dashboard':
+        return (
+          <Dashboard
+            username={username}
+            onLogout={handleLogout}
+          />
+        );
+      default:
+        return null;
     }
-
-    // Limpiar campos
-        setUsername("");
-        setEmail("");
-        setPassword("");
-
-        
   };
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("username");
-    setIsAuthenticated(false);
-    setLoggedUser("");
-  };
-
-  if (isAuthenticated) {
-    return (
-      <div className="container">
-        <div className="card">
-          <h2>Bienvenido {loggedUser} </h2>
-          <p>Has iniciado sesión correctamente.</p>
-          <button onClick={logout}>Cerrar sesión</button> 
-        </div>
-      </div>
-    );
-
-  }
-
-  return (
-    <div className="container">
-      <div className="card">
-        <h2>{isLogin ? "Iniciar Sesión" : "Registrarse"}</h2>
-
-        <form onSubmit={handleSubmit}>
-          <input
-            type="text"
-            placeholder="Usuario"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-
-          {!isLogin && (
-            <input
-              type="email"
-              placeholder="Correo"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          )}
-
-          <input
-            type="password"
-            placeholder="Contraseña"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-
-          <button type="submit">
-            {isLogin ? "Login" : "Registrar"}
-          </button>
-        </form>
-
-        <p>{message}</p>
-
-        <span onClick={() => {
-          setIsLogin(!isLogin);
-          setMessage("");
-        }}>
-          {isLogin
-            ? "¿No tienes cuenta? Regístrate"
-            : "¿Ya tienes cuenta? Inicia sesión"}
-        </span>
-      </div>
-    </div>
-  );
+  return renderView();
 }
 
 export default App;

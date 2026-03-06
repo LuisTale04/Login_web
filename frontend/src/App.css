@@ -1,46 +1,12 @@
-body {
-  background: linear-gradient(135deg, #365757, #739983);
-  font-family: Arial, sans-serif;
-}
+/* ══════════════════════════════════════════════
+   App.css — Estilos globales adicionales
+   ══════════════════════════════════════════════ */
 
-.container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-
-.card {
-  background: white;
-  padding: 40px;
-  border-radius: 12px;
-  width: 320px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-  text-align: center;
-}
-
-input {
-  width: 100%;
-  padding: 10px;
-  margin: 10px 0;
-}
-
-button {
-  width: 100%;
-  padding: 10px;
-  background: #4e73df;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
-button:hover {
-  background: #2e59d9;
-}
-
-span {
-  display: block;
-  margin-top: 15px;
-  cursor: pointer;
-  color: #4e73df;
-}
+/* Este archivo se mantiene intencionalmente
+   mínimo. Los estilos están organizados en:
+   - index.css → Design system y variables
+   - components/Auth/Login.css → Auth styles
+   - components/Dashboard/Dashboard.css → Dashboard styles
+   - components/Dashboard/Sidebar.css → Sidebar styles
+   - components/UI/Modal.css → Modal styles
+*/
